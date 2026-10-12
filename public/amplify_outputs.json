@@ -28,12 +28,13 @@
     "oauth": {
       "identity_providers": ["COGNITO", "Google"],
       "redirect_sign_in_uri": [
-        "http://localhost:3000/app",
-        "https://dev.d3mqnmcwpclb8h.amplifyapp.com/app",
-        "https://kiro.d3mqnmcwpclb8h.amplifyapp.com/app",
-        "https://eduq-ai.com/app",
-        "https://www.eduq-ai.com/app",
-        "https://admin.eduq-ai.com/"
+        "http://localhost:3000/",
+        "https://dev.d3mqnmcwpclb8h.amplifyapp.com/",
+        "https://kiro.d3mqnmcwpclb8h.amplifyapp.com/",
+        "https://eduq-ai.com/",
+        "https://www.eduq-ai.com/",
+        "https://fb.eduq-ai.com/",
+        "https://d1rdv449k3pucy.amplifyapp.com/"
       ],
       "redirect_sign_out_uri": [
         "http://localhost:3000/",
@@ -41,7 +42,8 @@
         "https://kiro.d3mqnmcwpclb8h.amplifyapp.com/",
         "https://eduq-ai.com/",
         "https://www.eduq-ai.com/",
-        "https://admin.eduq-ai.com/"
+        "https://fb.eduq-ai.com/",
+        "https://d1rdv449k3pucy.amplifyapp.com/"
       ],
       "response_type": "code",
       "scopes": [
