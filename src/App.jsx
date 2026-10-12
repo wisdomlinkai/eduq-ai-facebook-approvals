@@ -65,6 +65,8 @@ export default function App() {
 
   async function handleLogin() {
     try {
+      // Amplify v6 signInWithRedirect uses the oauth config from amplify_outputs.json
+      // No provider parameter needed - it reads from the config
       await signInWithRedirect();
     } catch (err) {
       console.error('[App] Login error:', err);
@@ -74,10 +76,17 @@ export default function App() {
 
   async function handleLogout() {
     try {
-      await signOut();
+      // Clear local state first
       setUser(null);
+      setError(null);
+      // Then sign out from Cognito
+      await signOut();
+      // Reload the page to clear any cached state
+      window.location.reload();
     } catch (err) {
       console.error('[App] Logout error:', err);
+      // Force reload even if signOut fails
+      window.location.reload();
     }
   }
 
