@@ -1,0 +1,8 @@
+/**
+ * App styles
+ */
+
+.app-loading p,
+.app-error p {
+  margin-top: 1rem;
+}
