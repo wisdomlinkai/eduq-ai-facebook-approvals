@@ -36,7 +36,9 @@ export default function App() {
       
       // Decode JWT to get groups
       const payload = JSON.parse(atob(idToken.toString().split('.')[1]));
-      const groups = payload['cognito:groups'] || [];
+      const rawGroups = payload['cognito:groups'];
+      // Ensure groups is always an array (handle undefined, string, or array)
+      const groups = Array.isArray(rawGroups) ? rawGroups : (rawGroups ? [rawGroups] : []);
       
       // Check admin access
       const isAdmin = groups.includes('Admins') || groups.includes('SuperAdmins');
