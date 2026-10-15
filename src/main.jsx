@@ -17,12 +17,12 @@ async function initApp() {
     const config = await response.json();
     
     // Amplify v6 OAuth configuration
-    // identityProviders should be individual keys, not an array
+    // Use redirect URIs from config file (array format required for matching)
     const oauthConfig = config.auth.oauth ? {
       domain: config.auth.oauth.domain,
       scopes: config.auth.oauth.scopes,
-      redirectSignIn: window.location.origin + '/',
-      redirectSignOut: window.location.origin + '/',
+      redirectSignIn: config.auth.oauth.redirect_sign_in_uri,
+      redirectSignOut: config.auth.oauth.redirect_sign_out_uri,
       responseType: config.auth.oauth.response_type,
     } : undefined;
     
