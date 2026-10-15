@@ -1,0 +1,12 @@
+{
+  "appId": "d1rdv449k3pucy",
+  "domainName": "eduq-ai.com",
+  "subDomainSettings": [
+    {
+      "subDomainSetting": {
+        "prefix": "fb",
+        "branchName": "master"
+      }
+    }
+  ]
+}

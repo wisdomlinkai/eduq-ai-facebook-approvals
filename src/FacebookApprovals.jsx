@@ -18,6 +18,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './FacebookApprovals.css';
 
 const FACEBOOK_TABLE_ID = 'noXFuxkPOfmqwYMf';
+const N8N_API_URL = 'https://lighthouse.eduq-ai.com/webhook/dashboard/posts';
 const N8N_API_KEY = import.meta.env.VITE_N8N_API_KEY;
 
 const FacebookApprovals = () => {
@@ -76,11 +77,11 @@ const FacebookApprovals = () => {
     posted: posts.filter(p => p.status === 'posted').length
   };
 
-  // Fetch posts from n8n data table
+  // Fetch posts from n8n webhook API
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`https://lighthouse.eduq-ai.com/api/v1/tables/${FACEBOOK_TABLE_ID}/rows?limit=100&sortBy=createdAt:desc`, {
+      const response = await fetch(N8N_API_URL, {
         headers: {
           'X-N8N-API-KEY': N8N_API_KEY
         }
@@ -89,7 +90,7 @@ const FacebookApprovals = () => {
       if (!response.ok) throw new Error('Failed to fetch posts');
       
       const data = await response.json();
-      setPosts(data.rows || []);
+      setPosts(data.posts || []);
       setError(null);
     } catch (err) {
       setError(err.message);
