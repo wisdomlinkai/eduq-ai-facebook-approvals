@@ -1,5 +1,6 @@
 /**
  * Main Entry Point - Facebook Approvals
+ * v2 - fix identityProviders OAuth issue
  */
 
 import React from 'react';
