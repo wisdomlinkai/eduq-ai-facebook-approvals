@@ -15,6 +15,16 @@ async function initApp() {
     const response = await fetch('/amplify_outputs.json');
     const config = await response.json();
     
+    // Amplify v6 OAuth configuration
+    // identityProviders should be individual keys, not an array
+    const oauthConfig = config.auth.oauth ? {
+      domain: config.auth.oauth.domain,
+      scopes: config.auth.oauth.scopes,
+      redirectSignIn: window.location.origin + '/',
+      redirectSignOut: window.location.origin + '/',
+      responseType: config.auth.oauth.response_type,
+    } : undefined;
+    
     Amplify.configure({
       Auth: {
         Cognito: {
@@ -22,14 +32,7 @@ async function initApp() {
           userPoolClientId: config.auth.user_pool_client_id,
           identityPoolId: config.auth.identity_pool_id,
           loginWith: {
-            oauth: config.auth.oauth ? {
-              identityProviders: config.auth.oauth.identity_providers,
-              domain: config.auth.oauth.domain,
-              scopes: config.auth.oauth.scopes,
-              redirectSignIn: window.location.origin + '/',
-              redirectSignOut: window.location.origin + '/',
-              responseType: config.auth.oauth.response_type,
-            } : undefined,
+            oauth: oauthConfig,
           },
         },
       },
