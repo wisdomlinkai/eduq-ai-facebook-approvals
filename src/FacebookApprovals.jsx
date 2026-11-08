@@ -18,7 +18,6 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './FacebookApprovals.css';
 
 const FACEBOOK_TABLE_ID = 'noXFuxkPOfmqwYMf';
-const N8N_API_URL = 'https://lighthouse.eduq-ai.com/webhook/dashboard/posts';
 const N8N_API_KEY = import.meta.env.VITE_N8N_API_KEY;
 
 const FacebookApprovals = () => {
@@ -37,6 +36,7 @@ const FacebookApprovals = () => {
   const [selectedPosts, setSelectedPosts] = useState(new Set());
   const [editingPost, setEditingPost] = useState(null);
   const [editedPrompt, setEditedPrompt] = useState('');
+  const [editedHashtags, setEditedHashtags] = useState('');
   const [showEditModal, setShowEditModal] = useState(false);
   const [toasts, setToasts] = useState([]);
 
@@ -77,11 +77,11 @@ const FacebookApprovals = () => {
     posted: posts.filter(p => p.status === 'posted').length
   };
 
-  // Fetch posts from n8n webhook API
+  // Fetch posts from n8n data table
   const fetchPosts = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(N8N_API_URL, {
+      const response = await fetch(`https://lighthouse.eduq-ai.com/api/v1/tables/${FACEBOOK_TABLE_ID}/rows?limit=100&sortBy=createdAt:desc`, {
         headers: {
           'X-N8N-API-KEY': N8N_API_KEY
         }
@@ -90,7 +90,7 @@ const FacebookApprovals = () => {
       if (!response.ok) throw new Error('Failed to fetch posts');
       
       const data = await response.json();
-      setPosts(data.posts || []);
+      setPosts(data.rows || []);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -116,8 +116,15 @@ const FacebookApprovals = () => {
   // Approve post
   const approvePost = async (postId) => {
     try {
-      const response = await fetch(`https://lighthouse.eduq-ai.com/webhook/facebook-content-approval?postId=${postId}&action=approve`, {
-        method: 'GET'
+      const response = await fetch(`https://lighthouse.eduq-ai.com/webhook/dashboard/action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'approve',
+          postId: postId
+        })
       });
       
       if (!response.ok) throw new Error('Approval failed');
@@ -133,8 +140,15 @@ const FacebookApprovals = () => {
   // Reject post
   const rejectPost = async (postId) => {
     try {
-      const response = await fetch(`https://lighthouse.eduq-ai.com/webhook/facebook-content-approval?postId=${postId}&action=reject`, {
-        method: 'GET'
+      const response = await fetch(`https://lighthouse.eduq-ai.com/webhook/dashboard/action`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'reject',
+          postId: postId
+        })
       });
       
       if (!response.ok) throw new Error('Rejection failed');
@@ -180,13 +194,14 @@ const FacebookApprovals = () => {
   const openEditModal = (post) => {
     setEditingPost(post);
     setEditedPrompt(post.imagePrompt || '');
+    setEditedHashtags(post.hashtags || '');
     setShowEditModal(true);
   };
 
-  // Save edited prompt
+  // Save edited prompt and hashtags
   const saveEditedPrompt = async () => {
-    if (!editingPost || !editedPrompt.trim()) {
-      showToast('Please enter a prompt', 'error');
+    if (!editingPost) {
+      showToast('No post selected', 'error');
       return;
     }
 
@@ -199,19 +214,20 @@ const FacebookApprovals = () => {
         body: JSON.stringify({
           action: 'save',
           postId: editingPost.id,
-          imagePrompt: editedPrompt.trim()
+          imagePrompt: editedPrompt.trim(),
+          hashtags: editedHashtags.trim()
         })
       });
       
-      if (!response.ok) throw new Error('Failed to save prompt');
+      if (!response.ok) throw new Error('Failed to save');
       
       setShowEditModal(false);
       setEditingPost(null);
-      showToast('Prompt saved and post re-approved', 'success');
+      showToast('Saved successfully', 'success');
       await fetchPosts();
     } catch (err) {
-      showToast('Failed to save prompt', 'error');
-      console.error('Error saving prompt:', err);
+      showToast('Failed to save', 'error');
+      console.error('Error saving:', err);
     }
   };
 
@@ -535,14 +551,63 @@ const FacebookApprovals = () => {
                 <strong>Post #{editingPost.id}</strong> - {getStatusText(editingPost.status)}
               </div>
               
-              <textarea
-                value={editedPrompt}
-                onChange={(e) => setEditedPrompt(e.target.value)}
-                placeholder="Enter image prompt..."
-                rows={10}
-              />
-              <div className="edit-modal__char-count">
-                {editedPrompt.length} characters
+              {/* Content Preview */}
+              {editingPost.message && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>
+                    Content Preview:
+                  </label>
+                  <div style={{ 
+                    padding: '12px', 
+                    background: '#f9fafb', 
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    lineHeight: '1.6',
+                    maxHeight: '150px',
+                    overflow: 'auto'
+                  }}>
+                    {editingPost.message}
+                  </div>
+                </div>
+              )}
+              
+              {/* Hashtags Edit */}
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>
+                  Hashtags:
+                </label>
+                <input
+                  type="text"
+                  value={editedHashtags}
+                  onChange={(e) => setEditedHashtags(e.target.value)}
+                  placeholder="#EduQAI #香港教育 #小學學習"
+                  style={{
+                    width: '100%',
+                    padding: '10px 12px',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '8px',
+                    fontSize: '14px'
+                  }}
+                />
+                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                  Space-separated hashtags (e.g., #EduQAI #數學學習)
+                </div>
+              </div>
+              
+              {/* Image Prompt Edit */}
+              <div>
+                <label style={{ display: 'block', fontWeight: '600', marginBottom: '8px' }}>
+                  Image Prompt:
+                </label>
+                <textarea
+                  value={editedPrompt}
+                  onChange={(e) => setEditedPrompt(e.target.value)}
+                  placeholder="Enter image prompt..."
+                  rows={6}
+                />
+                <div className="edit-modal__char-count">
+                  {editedPrompt.length} characters
+                </div>
               </div>
             </div>
             
@@ -629,6 +694,13 @@ const PostCard = ({
               {showFullContent ? 'Show less' : 'Show more'}
             </button>
           )}
+        </div>
+      )}
+
+      {post.hashtags && (
+        <div className="post-hashtags">
+          <strong>Tags:</strong>
+          <div className="hashtags-text">{post.hashtags}</div>
         </div>
       )}
 
